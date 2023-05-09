@@ -6,7 +6,6 @@ import sys
 import json
 import socket
 import argparse
-import tempfile
 import logging
 from logging import config as logging_config
 from getpass import getpass
@@ -166,12 +165,12 @@ if __name__ == "__main__":
     # - predictable socket path for use in ansible plugin
     # - tempdir for prevent error AF_UNIX path too long
     # - only one socket can be opened
-    tempdir = tempfile.gettempdir()
-    if not os.access(tempdir, os.W_OK):
-        sys.stderr.write("You have no write permissions to %s" % tempdir)
+    sockdir = '/run/user/%d' % os.getuid()
+    if not os.access(sockdir, os.W_OK):
+        sys.stderr.write("You have no write permissions to %s" % sockdir)
         sys.exit(1)
 
-    sock_file_path = "%s/ansible-keepass.sock" % tempdir
+    sock_file_path = "%s/ansible-keepass.sock" % sockdir
     if os.path.exists(sock_file_path):
         sys.stderr.write("kpsock is already opened. If you sure that kpsock "
                          "closed, run: rm %s" % sock_file_path)
