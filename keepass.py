@@ -12,7 +12,6 @@ except ImportError:
 import os
 import json
 import socket
-import tempfile
 from pykeepass import PyKeePass
 from construct.core import ChecksumError
 from ansible.errors import AnsibleError
@@ -65,7 +64,7 @@ class LookupModule(LookupBase):
         if os.path.isfile(kp_dbx):
             display.v(u"Keepass: database file %s" % kp_dbx)
 
-        kp_soc = "%s/ansible-keepass.sock" % tempfile.gettempdir()
+        kp_soc = "/run/user/%d/ansible-keepass.sock" % os.getuid()
         if os.path.exists(kp_soc):
             display.v(u"Keepass: fetch from socket")
             return self._fetch_socket(kp_soc, entry_path, entry_attr, enable_custom_attr)
