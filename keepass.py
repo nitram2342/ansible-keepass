@@ -12,6 +12,7 @@ except ImportError:
 import os
 import json
 import socket
+import base64
 from pykeepass import PyKeePass
 from construct.core import ChecksumError
 from ansible.errors import AnsibleError
@@ -115,7 +116,7 @@ class LookupModule(LookupBase):
         sock.send(json.dumps(data).encode())
         display.vv(u"KeePass: attr: %s in path: %s" % (entry_attr, entry_path))
         try:
-            msg = json.loads(sock.recv(1024).decode())
+            msg = json.loads(sock.recv(1024))
         except json.JSONDecodeError as e:
             raise AnsibleError(str(e))
         finally:
@@ -123,5 +124,5 @@ class LookupModule(LookupBase):
             display.vvvv(u"KeePass: disconnected")
 
         if msg['status'] == 'error':
-            raise AnsibleError(msg['text'])
-        return [msg['text']]
+            raise AnsibleError(base64.b64decode(msg['text']).decode('ascii'))
+        return [base64.b64decode(msg['text']).decode('ascii')]

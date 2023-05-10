@@ -7,6 +7,7 @@ import json
 import socket
 import argparse
 import logging
+import base64
 from logging import config as logging_config
 from getpass import getpass
 from pykeepass import PyKeePass
@@ -84,8 +85,9 @@ def main(kdbx, psw, kdbx_key, sock_fpath, ttl=60):
                                              'attr %s is not found' % attr))
                                 log.error('attr %s is not found' % attr)
                                 continue
-
-                            conn.send(_msg('ok', getattr(entr, attr)))
+                            ret = getattr(entr, attr)
+                            print(ret)
+                            conn.send(_msg('ok', ret))
                             log.info('Fetch %s: %s', path, attr)
     except CredentialsError:
         log.error("%s failed to decrypt" % kdbx)
@@ -110,7 +112,7 @@ def main(kdbx, psw, kdbx_key, sock_fpath, ttl=60):
 def _msg(status, text):
     return json.dumps({
         'status': status,
-        'text': text
+        'text': base64.b64encode(text.encode('ascii')).decode('ascii')
     }).encode()
 
 
