@@ -18,6 +18,7 @@ from construct.core import ChecksumError
 from ansible.errors import AnsibleError
 from ansible.plugins.lookup import LookupBase
 
+MAX_SIZE=50*1024
 
 DOCUMENTATION = """
     lookup: keepass
@@ -116,7 +117,7 @@ class LookupModule(LookupBase):
         sock.send(json.dumps(data).encode())
         display.vv(u"KeePass: attr: %s in path: %s" % (entry_attr, entry_path))
         try:
-            msg = json.loads(sock.recv(1024))
+            msg = json.loads(sock.recv(MAX_SIZE).decode())
         except json.JSONDecodeError as e:
             raise AnsibleError(str(e))
         finally:
@@ -125,4 +126,6 @@ class LookupModule(LookupBase):
 
         if msg['status'] == 'error':
             raise AnsibleError(base64.b64decode(msg['text']).decode('ascii'))
-        return [base64.b64decode(msg['text']).decode('ascii')]
+
+        x = base64.b64decode(msg['text']).decode('ascii')
+        return [x]

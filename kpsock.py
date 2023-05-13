@@ -13,6 +13,7 @@ from getpass import getpass
 from pykeepass import PyKeePass
 from pykeepass.exceptions import CredentialsError
 
+MAX_SIZE=50*1024
 
 try:
     FileNotFoundError
@@ -40,7 +41,7 @@ def main(kdbx, psw, kdbx_key, sock_fpath, ttl=60):
                     with conn:
                         conn.settimeout(ttl)
                         while True:
-                            data = conn.recv(1024).decode()
+                            data = conn.recv(MAX_SIZE).decode()
                             if not data:
                                 break
 
@@ -86,7 +87,6 @@ def main(kdbx, psw, kdbx_key, sock_fpath, ttl=60):
                                 log.error('attr %s is not found' % attr)
                                 continue
                             ret = getattr(entr, attr)
-                            print(ret)
                             conn.send(_msg('ok', ret))
                             log.info('Fetch %s: %s', path, attr)
     except CredentialsError:
@@ -110,10 +110,15 @@ def main(kdbx, psw, kdbx_key, sock_fpath, ttl=60):
 
 
 def _msg(status, text):
-    return json.dumps({
+    ret = json.dumps({
         'status': status,
         'text': base64.b64encode(text.encode('ascii')).decode('ascii')
     }).encode()
+
+    if len(ret) > MAX_SIZE:
+        raise ValueError("")
+
+    return ret
 
 
 if __name__ == "__main__":
